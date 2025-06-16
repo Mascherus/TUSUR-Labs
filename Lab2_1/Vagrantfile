@@ -1,0 +1,57 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+ENV['VAGRANT_SERVER_URL'] = 'https://vagrant.elab.pro'
+
+# Vagrant.configure("2") do |config|
+#   config.vm.box = "precise32"
+#   # Create port forward from host to guest VM
+#   config.vm.network "forwarded_port", guest: 80, host: 8080, auto_correct: true
+#   # Start SimpleHTTPServer on python
+#   config.vm.provision :shell, privileged: true, path: "./start_server.sh"
+# end
+Vagrant.configure("2") do |config|
+# # Create my first VM
+#   config.vm.define "firstvm"  do |firstvm|
+#     firstvm.vm.box = "precise32"
+#     # Create port forward from host to guest VM
+#     firstvm.vm.network "forwarded_port", guest: 80, host:8080, auto_correct: true
+#     # Start SimpleHTTPServer on python
+#     firstvm.vm.provision "shell", privileged: true, path: "./start_server.sh"
+#   end
+# Create webserver VM
+  config.vm.define "webserver" do |web|
+    web.vm.box = "bento/ubuntu-24.04"
+    web.vm.network "private_network", ip: "192.168.50.10"
+    # Install Apache
+    # web.vm.provision "shell", inline: <<-SHELL
+    #   sudo apt-get update
+    #   sudo apt-get install apache2 -y
+    #   sudo systemctl enable apache2
+    # SHELL
+    web.vm.provision "shell", privileged: true, path: "./start_webserver.sh"
+  end
+# Create dbserver VM
+  config.vm.define "dbserver" do |db|
+    db.vm.box = "bento/ubuntu-24.04"
+    db.vm.network "private_network", ip: "192.168.50.11"
+    # Install MySQL
+    # db.vm.provision "shell", inline: <<-SHELL
+    #   sudo apt-get update
+    #   sudo apt-get install -y mysql-server
+    #   sudo systemctl enable mysql
+    # SHELL
+    db.vm.provision "shell", privileged: true, path: "./start_dbserver.sh"
+  end
+# Create loadbalancer VM
+  config.vm.define "loadbalancer" do |lb|
+    lb.vm.box = "bento/ubuntu-24.04"
+    lb.vm.network "public_network"
+    # Install HAProxy
+    # lb.vm.provision "shell", inline: <<-SHELL
+    #   sudo apt-get update
+    #   sudo apt-get install -y haproxy
+    #   sudo systemctl enable haproxy
+    # SHELL
+    lb.vm.provision "shell", privileged: true, path: "./start_loadbalancer.sh"
+  end
+end

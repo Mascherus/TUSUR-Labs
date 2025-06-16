@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+ENV['VAGRANT_SERVER_URL'] = 'https://vagrant.elab.pro'
+
+Vagrant.configure("2") do |config|
+# Create webserver VM
+  config.vm.define "webserver" do |web|
+    web.vm.box = "bento/ubuntu-24.04"
+    web.vm.network "private_network", ip: "192.168.50.10"
+    # Install Apache
+    web.vm.provision "initialize", type: "shell", privileged: true, path: "./start_webserver.sh"
+    # Install php and add file /var/www/html/test_db.php
+    web.vm.provision "services-config", type: "shell", privileged: true, path: "./configure_webserver_services.sh"
+  end
+# Create dbserver VM
+  config.vm.define "dbserver" do |db|
+    db.vm.box = "bento/ubuntu-24.04"
+    db.vm.network "private_network", ip: "192.168.50.11"
+    # Install MySQL
+    db.vm.provision "initialize", type: "shell", privileged: true, path: "./start_dbserver.sh"
+    # Create DB testdb, create user vagrant_test and bind mysql to 192.168.50.11
+    db.vm.provision "services-config", type: "shell", privileged: true, path: "./configure_dbserver_services.sh"
+  end
+# Create loadbalancer VM
+  config.vm.define "loadbalancer" do |lb|
+    lb.vm.box = "bento/ubuntu-24.04"
+    lb.vm.network "public_network"
+    # Install HAProxy
+    lb.vm.provision "initialize", type: "shell", privileged: true, path: "./start_loadbalancer.sh"
+    # Configure HAProxy backend and frontend from loadbalancer server to webserver
+    lb.vm.provision "services-config", type: "shell", privileged: true, path: "./configure_loadbalancer_services.sh"
+  end
+end
