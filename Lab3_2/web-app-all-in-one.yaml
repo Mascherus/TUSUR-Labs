@@ -71,13 +71,25 @@ spec:
         requests:
           storage: 1Gi
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: lab3-2
+spec:
+  ports:
+    - port: 3306
+  clusterIP: None
+  selector:
+    app: mysql
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: webapp
   namespace: lab3-2
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: webapp
@@ -115,10 +127,10 @@ metadata:
   name: webapp-service
   namespace: lab3-2
 spec:
+  type: LoadBalancer
   selector:
     app: webapp
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: LoadBalancer
+    - protocol: TCP
+      port: 80
+      targetPort: 80
